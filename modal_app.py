@@ -36,7 +36,7 @@ TRAINING_OUTPUT_PATH = f"{VOLUME_PATH}/training_output"
 # Base image with Ollama + Python deps
 ollama_image = (
     modal.Image.debian_slim(python_version="3.11")
-    .apt_install("curl", "ca-certificates", "procps")
+    .apt_install("curl", "ca-certificates", "procps", "zstd")
     .run_commands(
         "curl -fsSL https://ollama.com/install.sh | sh",
     )
@@ -47,25 +47,26 @@ ollama_image = (
         "fastapi>=0.115.0",
         "uvicorn>=0.30.0",
     )
-    .copy_local_file("qwen3_5.py", "/app/qwen3_5.py")
-    .copy_local_file("training_algebra.py", "/app/training_algebra.py")
-    .copy_local_file("memory.json", "/app/memory_seed.json")
+    .add_local_file("qwen3_5.py", "/app/qwen3_5.py")
+    .add_local_file("training_algebra.py", "/app/training_algebra.py")
+    .add_local_file("memory.json", "/app/memory_seed.json")
 )
 
 # Training image with HuggingFace stack (heavier, used only for train ops)
+# Built lazily — only instantiated when a training op is actually called
 training_image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
-        "torch>=2.4.0",
-        "transformers>=4.45.0",
-        "peft>=0.13.0",
-        "trl>=0.12.0",
-        "datasets>=3.0.0",
-        "bitsandbytes>=0.44.0",
-        "accelerate>=1.0.0",
+        "torch==2.4.1",
+        "transformers==4.45.2",
+        "peft==0.13.2",
+        "trl==0.12.2",
+        "datasets==3.0.1",
+        "bitsandbytes==0.44.1",
+        "accelerate==1.0.1",
         "pydantic>=2.0.0",
     )
-    .copy_local_file("training_algebra.py", "/app/training_algebra.py")
+    .add_local_file("training_algebra.py", "/app/training_algebra.py")
 )
 
 
@@ -134,7 +135,7 @@ def _ensure_memory():
     gpu="A10G",
     volumes={VOLUME_PATH: volume},
     timeout=300,
-    container_idle_timeout=120,
+    scaledown_window=120,
 )
 class Agent:
     @modal.enter()
@@ -345,8 +346,8 @@ web_image = (
 @app.function(
     image=web_image,
     volumes={VOLUME_PATH: volume},
-    allow_concurrent_inputs=10,
 )
+@modal.concurrent(max_inputs=10)
 @modal.asgi_app()
 def web():
     from fastapi import FastAPI
