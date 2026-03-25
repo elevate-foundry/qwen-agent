@@ -364,7 +364,7 @@ class Agent:
     gpu="A10G",
     volumes={VOLUME_PATH: volume},
     timeout=3600,
-    min_containers=1,  # Keep one GPU container hot — eliminates cold-start latency
+    min_containers=0,  # Scale to zero when idle — saves ~$26/day on A10G
 )
 class Trainer:
     @modal.enter()
