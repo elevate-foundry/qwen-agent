@@ -113,3 +113,17 @@ The agent can request training operations through the `train` tool op. On Modal,
 | `dpo` | trl | Direct preference optimization |
 
 Training artifacts are saved to the Modal volume at `/data/training_output/`.
+
+<!-- ELEVATE:BEGIN (auto-generated section; edits here are overwritten) -->
+## About
+
+| | |
+| --- | --- |
+| **Description** | Qwen provable agent with finite tool algebra, model-owned memory, audit log, and Modal GPU training |
+| **Language** | Python |
+| **Commits** | 6 |
+| **Created** | 2026-03-25 |
+| **Last push** | 2026-03-25 |
+
+Part of [**elevate-foundry**](https://github.com/elevate-foundry) · [repository](https://github.com/elevate-foundry/qwen-agent)
+<!-- ELEVATE:END -->
